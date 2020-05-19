@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace Experimental
 {
@@ -11,11 +12,21 @@ namespace Experimental
     {
         internal GraphicsDeviceManager _Graphics;
         internal SpriteBatch _SpriteBatch;
-        private Ball[] _Balls;
+        private Ball _Ball;
+        private Random _Rand = new Random();
+        private int _WindowHeight;
+        private int _WindowWidth;
+
 
         public Game1()
         {
             _Graphics = new GraphicsDeviceManager(this);
+            _WindowHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height - 100;
+            _WindowWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width - 100;
+            _Graphics.PreferredBackBufferWidth = _WindowWidth;
+            _Graphics.PreferredBackBufferHeight = _WindowHeight;
+            _Graphics.ApplyChanges();
+            
             Content.RootDirectory = "Content";
         }
 
@@ -28,7 +39,14 @@ namespace Experimental
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            
+            Ball.Texture = Content.Load<Texture2D>("ball");
+            _Ball = new Ball();
+            _Ball.Position = new Vector2(_Ball.Radius, _Ball.Radius);
+            _Ball.Velocity = new Vector2(15f, 0f);
+            _Ball.Acceleration = new Vector2(0f, 9.8f);
+            _Ball.Color = Color.White;
+                
+
 
             base.Initialize();
         }
@@ -43,7 +61,7 @@ namespace Experimental
             _SpriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-             Ball.Texture(Content.Load<Texture2D>("ball"));
+             
             
         }
 
@@ -65,8 +83,16 @@ namespace Experimental
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
             // TODO: Add your update logic here
+            GameObject.UpdateActive(.2f);
+
+            if ((_Ball.Position.Y + _Ball.Radius) > _WindowHeight) { _Ball.Position = new Vector2(_Ball.Position.X, _WindowHeight - _Ball.Radius); _Ball.BounceUp(); }
+            if ((_Ball.Position.Y - _Ball.Radius) < 0) { _Ball.Position = new Vector2(_Ball.Position.X, 0); _Ball.BounceDown(); } 
+            if ((_Ball.Position.X + _Ball.Radius) > _WindowWidth) _Ball.BounceLeft();
+            if ((_Ball.Position.X - _Ball.Radius) < 0) _Ball.BounceRight();
+
+            
+
 
             base.Update(gameTime);
         }
@@ -81,7 +107,7 @@ namespace Experimental
 
             // TODO: Add your drawing code here
             _SpriteBatch.Begin();
-            _SpriteBatch.Draw(_BallTexture, new Vector2(0, 0), Color.White);
+            GameObject.DrawVisible(_SpriteBatch);
             _SpriteBatch.End();
 
             base.Draw(gameTime);
